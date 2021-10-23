@@ -1,0 +1,8 @@
+name: ABSmina
+main: br.asyncblocks.absminas.ABSminas
+version: 0.1
+
+commands:
+  minaselector:
+  criarmina:
+  blocksaves:

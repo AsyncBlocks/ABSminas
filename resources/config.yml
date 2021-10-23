@@ -1,0 +1,5 @@
+configuracao-sistema:
+  blocos-permitidos: # ID ; DATA ; PERM ; COOLDOWN
+    - "1;0;membro.quebrar;2"
+    - "153;0;membro.quebrar;15"
+    - "129;0;vip.quebrar;60"

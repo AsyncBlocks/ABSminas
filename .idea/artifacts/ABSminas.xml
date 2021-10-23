@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ABSminas">
+    <output-path>$USER_HOME$/Desktop/Lista de Servidores/1.8.8/plugins</output-path>
+    <root id="archive" name="ABSminas.jar">
+      <element id="module-output" name="ABSminas" />
+    </root>
+  </artifact>
+</component>
