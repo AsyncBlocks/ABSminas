@@ -8,6 +8,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.craftbukkit.v1_12_R1.enchantments.CraftEnchantment;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -17,32 +20,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static br.asyncblocks.absminas.ABSminas.*;
 public class AoQuebrarBlocos implements Listener {
 
     private static List<BlockSave> blockSaves = new ArrayList<>();
+    private static HashMap<Player,Long> msgCooldowns = new HashMap<>();
 
     @EventHandler
     public void aoQuebrar(BlockBreakEvent e) {
         Block blocoQuebrado = e.getBlock();
-        if(getMinasManager().getMinas().stream().anyMatch(m -> m.getRegiao().contains(blocoQuebrado))) {
+        if(verificarRegiao(blocoQuebrado)) {
             int id = blocoQuebrado.getTypeId();
             byte data = blocoQuebrado.getData();
             Location location = blocoQuebrado.getLocation();
-            boolean resultado = getMinasManager().getBlocos().stream()
-                    .anyMatch(b -> b.getTypeId() == id
-                            && b.getData().getData() == data);
+
+            boolean resultado = verificarBlocoValido(id,data);
+
             if(resultado) {
                 e.setCancelled(true);
-                ItemStack key = new ItemStack(id,data);
-                String permissao = getMinasManager().getBlocos_e_permissoes().get(key);
-                int cooldown = getMinasManager().getBlocos_e_cooldowns().get(key);
+                Player player = e.getPlayer();
+                ItemStack itemStack = new ItemStack(id,data);
+                String permissao = coletarPermissao(itemStack);
+                int cooldown = coletarCooldown(itemStack);
 
-                if(!e.getPlayer().hasPermission(permissao)) {
-                    PluginUtils.playerMsg(e.getPlayer(),"Voce nao pode pegar este minerio!");
-                    return;
-                }
+                if(!verificarSePodeColetarBloco(permissao,player)) return;
 
                 BlockSave blockSave = new BlockSave(id,data,location);
                 blockSaves.add(blockSave);
@@ -51,8 +54,39 @@ public class AoQuebrarBlocos implements Listener {
                     blocoQuebrado.setTypeIdAndData(id,data,true);
                     blockSaves.remove(blockSave);
                 },20*cooldown);
+                coletarBloco(player,itemStack);
             }
         }
+    }
+
+    private boolean verificarRegiao(Block block) {
+        return getMinasManager().getMinas().stream().anyMatch(m -> m.getRegiao().contains(block));
+    }
+
+    private boolean verificarBlocoValido(int id,byte data) {
+        return getMinasManager().getBlocos().stream()
+                .anyMatch(b -> b.getTypeId() == id
+                        && b.getData().getData() == data);
+    }
+
+    private String coletarPermissao(ItemStack key) {
+        return getMinasManager().getBlocos_e_permissoes().get(key);
+    }
+
+    private int coletarCooldown(ItemStack key) {
+        return getMinasManager().getBlocos_e_cooldowns().get(key);
+    }
+
+    private boolean verificarSePodeColetarBloco(String permissao,Player player) {
+        if(!player.hasPermission(permissao)) {
+            if(msgCooldowns.containsKey(player) && System.currentTimeMillis() < msgCooldowns.get(player))
+                return false;
+            else msgCooldowns.remove(player);
+            PluginUtils.playerMsg(player, "Voce nao pode pegar este minerio!");
+            PluginUtils.playerSound_ERRO(player);
+            msgCooldowns.put(player,System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2));
+            return false;
+        } else return true;
     }
 
     public static void salvarBlockSaves() {
@@ -101,6 +135,18 @@ public class AoQuebrarBlocos implements Listener {
                     .getBlockAt(blockSave.getLocation())
                     .setTypeIdAndData(blockSave.getId(),blockSave.getData(),true);
         });
+    }
+
+    private void coletarBloco(Player player,ItemStack itemStack) {
+        if(player.getInventory().firstEmpty() != -1) {
+            int playerFortune = player.getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS);
+            int quantidadeDrop = playerFortune == 0 ? 3 : (playerFortune * 3);
+            itemStack.setAmount(quantidadeDrop);
+            player.getInventory().addItem(itemStack);
+        } else {
+            PluginUtils.playerMsg(player,"Seu Inventario esta Cheio!");
+            // SEM ESPACO NO INVENTARIO
+        }
     }
 
     public static List<BlockSave> getBlockSaves() {
