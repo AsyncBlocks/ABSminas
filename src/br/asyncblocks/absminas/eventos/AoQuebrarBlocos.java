@@ -43,6 +43,7 @@ public class AoQuebrarBlocos implements Listener {
                     PluginUtils.playerMsg(e.getPlayer(),"Voce nao pode pegar este minerio!");
                     return;
                 }
+
                 BlockSave blockSave = new BlockSave(id,data,location);
                 blockSaves.add(blockSave);
                 blocoQuebrado.setTypeIdAndData(7,(byte) 0,true);
