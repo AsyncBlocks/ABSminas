@@ -135,6 +135,9 @@ public class AoQuebrarBlocos implements Listener {
                     .getBlockAt(blockSave.getLocation())
                     .setTypeIdAndData(blockSave.getId(),blockSave.getData(),true);
         });
+        blockSaves = new ArrayList<>();
+        getBlockSave().set("save", new ArrayList<String>());
+        salvarBlockSave();
     }
 
     private void coletarBloco(Player player,ItemStack itemStack) {
@@ -144,8 +147,12 @@ public class AoQuebrarBlocos implements Listener {
             itemStack.setAmount(quantidadeDrop);
             player.getInventory().addItem(itemStack);
         } else {
-            PluginUtils.playerMsg(player,"Seu Inventario esta Cheio!");
-            // SEM ESPACO NO INVENTARIO
+            if(msgCooldowns.containsKey(player) && System.currentTimeMillis() < msgCooldowns.get(player)) {
+                return;
+            } else msgCooldowns.remove(player);
+            PluginUtils.playerMsg(player, "Seu Inventario esta Cheio!");
+            PluginUtils.playerSound_NOTE_BASS(player);
+            msgCooldowns.put(player,System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2));
         }
     }
 

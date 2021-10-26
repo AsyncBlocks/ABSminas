@@ -44,6 +44,7 @@ public class ABSminas extends JavaPlugin {
 
         AoQuebrarBlocos.pegarBlockSavesList();
         AoQuebrarBlocos.carregarBlockSaves();
+        autoSaveBlocks();
     }
 
     @Override
@@ -92,6 +93,12 @@ public class ABSminas extends JavaPlugin {
 
         minasConfig = new MinasConfig();
         blockSavesDatabase = new BlockSavesDatabase();
+    }
+
+    private void autoSaveBlocks() {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this,() -> {
+            AoQuebrarBlocos.salvarBlockSaves();
+        },0L,(20*60)*2);
     }
 
     public static FileConfiguration getMinasConfig() {

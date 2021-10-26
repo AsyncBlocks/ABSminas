@@ -27,6 +27,12 @@ public class CriarMina implements CommandExecutor {
             return false;
         }
 
+        if(strings.length == 0) {
+            PluginUtils.playerMsg(player,ChatColor.RED+"Voce precisa passar um nome!");
+            PluginUtils.playerSound_ERRO(player);
+            return false;
+        }
+
         if(!CriadorDaMina.getPlayersSeletores().containsKey(player)) {
             PluginUtils.playerMsg(player,ChatColor.RED+"Voce precisa selecionar o pos1 e o pos2 da mina!");
             PluginUtils.playerSound_ERRO(player);

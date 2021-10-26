@@ -43,6 +43,8 @@ public class MinasConfig {
     private void criarArquivo() {
         try {
             file.createNewFile();
+            pegarConfig().createSection("minas");
+            salvar();
         } catch (IOException e) {
             consoleMsg(ChatColor.RED+"Nao foi possivel criar os arquivos da config! desligando plugin..");
             Bukkit.getServer().getPluginManager().disablePlugin(getPlugin());
